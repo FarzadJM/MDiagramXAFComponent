@@ -1,0 +1,39 @@
+﻿@implements IDisposable
+
+<MDiagramRazorComponent.MDiagram @ref="diagram"
+                                 GetNodesDataAsync="@ComponentModel.GetNodesDataAsync"
+                                 GetEdgesDataAsync="@ComponentModel.GetEdgesDataAsync">
+</MDiagramRazorComponent.MDiagram>
+
+@code {
+    private MDiagramRazorComponent.MDiagram diagram;
+
+    public static RenderFragment Create(MDiagramModel componentModel) => @<MDiagramEditorComponent ComponentModel=@componentModel />;
+
+    [Parameter]
+    public MDiagramModel ComponentModel { get; set; }
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        if (ComponentModel is not null)
+        {
+            ComponentModel.RefreshRequested -= ComponentModel_RefreshRequested;
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        ComponentModel.RefreshRequested += ComponentModel_RefreshRequested;
+    }
+
+    protected void ComponentModel_RefreshRequested(object sender, EventArgs e) => diagram?.Refresh();
+
+    void IDisposable.Dispose()
+    {
+        ComponentModel.RefreshRequested -= ComponentModel_RefreshRequested;
+    }
+}
